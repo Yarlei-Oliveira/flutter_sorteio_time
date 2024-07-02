@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_sorteio_time/model/person.dart';
+import 'package:flutter_sorteio_time/model/times.dart';
+import 'package:flutter_sorteio_time/service/team_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
 class PersonProvider with ChangeNotifier {
+  final teamService = TeamService();
+
   List<Person> _persons = [];
+  Times? _times = null;
   final List<Person> _selectedPersons = [];
 
   PersonProvider() {
@@ -12,6 +17,7 @@ class PersonProvider with ChangeNotifier {
   }
 
   List<Person> get persons => _persons;
+  Times? get times => _times;
   List<Person> get selectedPersons => _selectedPersons;
 
   void addPerson(Person person) {
@@ -26,18 +32,19 @@ class PersonProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void updatePersonScore(Person person, double newScore) {
-    person.score = newScore;
+  void updatePersonScore(Person person, int newScore) {
+    person.spm = newScore;
     _savePersons();
     notifyListeners();
   }
 
   void selectPerson(Person person) {
-    if (_selectedPersons.contains(person)) {
-      _selectedPersons.remove(person);
-    } else {
-      _selectedPersons.add(person);
-    }
+    person.enabled = !person.enabled;
+    notifyListeners();
+  }
+
+  void getTeams(List<Person> users) async {
+    _times = await teamService.sorteioTimes(users);
     notifyListeners();
   }
 
@@ -53,12 +60,9 @@ class PersonProvider with ChangeNotifier {
   }
 
   void _loadPersons() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    List<String>? personStrings = prefs.getStringList('persons');
-    if (personStrings != null) {
-      _persons = personStrings
-          .map((string) => Person.fromJson(json.decode(string)))
-          .toList();
+    final users = await teamService.getUsers() ?? [];
+    if (users.isNotEmpty) {
+      _persons = users;
       notifyListeners();
     }
   }

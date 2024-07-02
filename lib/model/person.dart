@@ -1,20 +1,27 @@
 class Person {
-  String name;
-  double score;
+  String user;
+  int spm;
+  bool enabled;
 
-  Person({required this.name, required this.score});
+  Person({
+    required this.user,
+    required this.spm,
+    required this.enabled,
+  });
 
   Map<String, dynamic> toJson() {
     return {
-      'name': name,
-      'score': score,
+      "user": user,
+      "spm": spm,
+      "enabled": enabled,
     };
   }
 
   factory Person.fromJson(Map<String, dynamic> json) {
     return Person(
-      name: json['name'],
-      score: json['score'].toDouble(), // Convert score to double
+      user: json['user'],
+      spm: json['spm'],
+      enabled: json['enabled'],
     );
   }
 }
